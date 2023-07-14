@@ -26,14 +26,40 @@ db.sequelize = sequelize;
 
 db.produk = require("./produk.model")(sequelize, Sequelize);
 db.kategori = require("./kategori.model")(sequelize, Sequelize);
+db.transaksi = require("./transaksi.model")(sequelize, Sequelize);
+db.transaksi_detail = require("./transaksi_detail.model")(sequelize, Sequelize);
+db.customer = require("./customer.model")(sequelize, Sequelize);
+db.keranjang = require("./keranjang.model")(sequelize, Sequelize);
 
+// Kategori
 db.kategori.hasMany(db.produk, {
   foreignKey: "category_id",
   onDelete: "SET NULL",
 });
-db.kategori.belongsTo(db.kategori, {
+db.produk.belongsTo(db.kategori, {
   foreignKey: "category_id",
   onDelete: "SET NULL",
 });
+
+// Keranjang
+db.produk.hasMany(db.keranjang, {
+  foreignKey: "produk_id",
+  onDelete: "CASCADE",
+});
+db.keranjang.belongsTo(db.produk, { foreignKey: "produk_id" });
+
+// Transaksi
+db.produk.hasMany(db.transaksi_detail, {
+  foreignKey: "produk_id",
+  onDelete: "SET NULL",
+});
+db.transaksi_detail.belongsTo(db.produk, { foreignKey: "produk_id" });
+
+db.transaksi.hasMany(db.transaksi_detail, { foreignKey: "produk_id" });
+db.transaksi_detail.belongsTo(db.transaksi, { foreignKey: "produk_id" });
+
+// customer
+db.transaksi.hasOne(db.customer, { foreignKey: "trs_id", onDelete: "CASCADE" });
+db.customer.belongsTo(db.transaksi, { foreignKey: "trs_id" });
 
 module.exports = db;

@@ -75,6 +75,21 @@ exports.getProdukDetail = async (req, res) => {
   db.produk
     .findOne({
       where: { url: url },
+      attributes: [
+        "id",
+        "title",
+        "description",
+        "full_description",
+        "image",
+        "price",
+        "category_id",
+      ],
+      include: [
+        {
+          model: db.kategori,
+          attributes: ["name"],
+        },
+      ],
     })
     .then((result) => {
       if (result) {
@@ -97,3 +112,67 @@ exports.getProdukDetail = async (req, res) => {
       });
     });
 };
+
+exports.getDataKeranjang = async (req, res) => {
+  const session_id = req.query.session_id;
+
+  db.keranjang
+    .findAll({
+      where: { session_id: session_id },
+      include: [
+        {
+          model: db.produk,
+        },
+      ],
+    })
+    .then((result) => {
+      if (result.length > 0) {
+        res.send({
+          code: 200,
+          message: "Ok",
+          data: result,
+        });
+      } else {
+        res.status(404).send({
+          code: 404,
+          message: "Belum ada data di keranjang",
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({
+        code: 500,
+        message: "Error retrive data > " + err,
+      });
+    });
+};
+
+exports.tambahDataKeranjang = async (req, res) => {
+  const data = {
+    produk_id: req.body.id,
+    qty: req.body.qty,
+    session_id: req.body.session_id,
+  };
+
+  db.keranjang
+    .create(data)
+    .then((result) => {
+      res.send({
+        code: 200,
+        message: "Ok",
+        data: result,
+      });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        code: 500,
+        message: "Error menambahkan data keranjang..",
+      });
+    });
+};
+
+exports.ubahDataKeranjang = async (req, res) => {};
+
+exports.hapusDataKeranjang = async (req, res) => {};
+
+exports.checkout = async (req, res) => {};
