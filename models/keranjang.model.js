@@ -1,13 +1,12 @@
 module.exports = (sequelize, Sequelize) => {
-  const Transaksi = sequelize.define("transaksi", {
-    id: {
-      type: Sequelize.STRING,
-      primaryKey: true,
+  const Keranjang = sequelize.define("keranjang", {
+    qty: {
+      type: Sequelize.INTEGER,
     },
-    trs_number: {
+    session_id: {
       type: Sequelize.STRING,
     },
   });
 
-  return Transaksi;
+  return Keranjang;
 };

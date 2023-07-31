@@ -4,22 +4,7 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       primaryKey: true,
     },
-    title: {
-      type: Sequelize.STRING,
-    },
-    description: {
-      type: Sequelize.STRING,
-    },
-    full_description: {
-      type: Sequelize.TEXT,
-    },
-    image: {
-      type: Sequelize.STRING,
-    },
-    price: {
-      type: Sequelize.INTEGER,
-    },
-    url: {
+    trs_number: {
       type: Sequelize.STRING,
     },
   });

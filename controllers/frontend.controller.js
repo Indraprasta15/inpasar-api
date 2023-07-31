@@ -119,9 +119,11 @@ exports.getDataKeranjang = async (req, res) => {
   db.keranjang
     .findAll({
       where: { session_id: session_id },
+      attributes: ["id", "qty", "session_id", "createdAt"],
       include: [
         {
           model: db.produk,
+          attributes: ["id", "title", "image", "price", "url"],
         },
       ],
     })
@@ -148,31 +150,159 @@ exports.getDataKeranjang = async (req, res) => {
 };
 
 exports.tambahDataKeranjang = async (req, res) => {
-  const data = {
-    produk_id: req.body.id,
-    qty: req.body.qty,
-    session_id: req.body.session_id,
-  };
+  const cekKeranjang = db.keranjang.findOne({
+    where: [
+      {
+        produk_id: req.body.produk_id,
+      },
+      {
+        session_id: req.body.session_id,
+      },
+    ],
+  });
+
+  if (cekKeranjang !== null) {
+    const data = {
+      qty: cekKeranjang.qty + 1,
+    };
+
+    await db.keranjang
+      .update(data, {
+        where: { id: cekKeranjang.id },
+      })
+      .then((result) => {
+        res.send({
+          code: 200,
+          message: "Berhasil menambah keranjang.",
+        });
+      })
+      .catch((err) => {
+        res.status(500).send({
+          code: 500,
+          message: "Error update keranjang > ",
+          err,
+        });
+      });
+  } else {
+    const data = {
+      produk_id: req.body.produk_id,
+      qty: req.body.qty,
+      session_id: req.body.session_id,
+    };
+
+    await db.keranjang
+      .create(data)
+      .then((result) => {
+        res.send({
+          code: 200,
+          message: "Ok",
+          data: result,
+        });
+      })
+      .catch((err) => {
+        res.status(500).send({
+          code: 500,
+          message: "Error menambahkan data keranjang..",
+        });
+      });
+  }
+};
+
+exports.ubahDataKeranjang = async (req, res) => {
+  const id = req.body.id;
+  const qty = req.body.qty;
+
+  await db.keranjang
+    .update(
+      { qty: qty },
+      {
+        where: { id: id },
+      }
+    )
+    .then((result) => {
+      if (result[0]) {
+        res.send({
+          code: 200,
+          message: "Sukses ubah data",
+        });
+      } else {
+        res.status(422).send({
+          code: 422,
+          message: "Ada yang salah dari input",
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({
+        code: 500,
+        message: "Error ubah data > ",
+        err,
+      });
+    });
+};
+
+exports.hapusDataKeranjang = async (req, res) => {
+  const id = req.params.id;
 
   db.keranjang
-    .create(data)
+    .destroy({ where: { id: id } })
     .then((result) => {
       res.send({
         code: 200,
-        message: "Ok",
-        data: result,
+        message: "Sukses menghapus data",
       });
     })
     .catch((err) => {
       res.status(500).send({
         code: 500,
-        message: "Error menambahkan data keranjang..",
+        message: "Error hapus data > ",
+        err,
       });
     });
 };
 
-exports.ubahDataKeranjang = async (req, res) => {};
+exports.checkout = async (req, res) => {
+  const session_id = req.query.session_id;
 
-exports.hapusDataKeranjang = async (req, res) => {};
+  const data = {
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    alamat: req.body.alamat,
+    phone: req.body.phone,
+  };
 
-exports.checkout = async (req, res) => {};
+  const dataKeranjang = await db.keranjang.findAll({
+    where: { session_id: session_id },
+  });
+
+  if (dataKeranjang.length > 0) {
+    const trs_number = "TRS" + Date.now();
+    const trs_id = uuidv4();
+
+    const dataTransaksi = {
+      id: trs_id,
+      trs_number: trs_number,
+    };
+
+    await db.transaksi.create(dataTransaksi);
+
+    dataKeranjang.map((item, index) => {
+      const dataTrsDetil = {
+        qty: item.qty,
+        produk_id: item.produk_id,
+        trs_id: trs_id,
+      };
+
+      db.transaksi_detail.create(dataTrsDetil);
+      db.keranjang.destroy({ where: { id: item.id } });
+    });
+
+    await db.customer.create(data);
+
+    await res.status(200).send({
+      code: 200,
+      message: "Sukses melakukan transaksi",
+    });
+  }
+};

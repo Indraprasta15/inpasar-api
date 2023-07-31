@@ -12,5 +12,5 @@ router.post("/keranjang", frontend.tambahDataKeranjang);
 router.put("/keranjang/:id", frontend.ubahDataKeranjang);
 router.delete("/keranjang/:id", frontend.hapusDataKeranjang);
 
-router.post("/checkout/:keranjang_id", frontend.checkout);
+router.post("/checkout", frontend.checkout);
 module.exports = router;
