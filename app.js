@@ -20,4 +20,7 @@ app.use("/kategori", kategoriRouter);
 const frontendRouter = require("./routes/frontend");
 app.use("/frontend", frontendRouter);
 
+const transaksiRouter = require("./routes/transaksi");
+app.use("/transaksi", transaksiRouter);
+
 module.exports = app;

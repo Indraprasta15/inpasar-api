@@ -304,5 +304,10 @@ exports.checkout = async (req, res) => {
       code: 200,
       message: "Sukses melakukan transaksi",
     });
+  } else {
+    res.status(403).send({
+      code: 403,
+      message: "Kamu belum memiliki produk di keranjang",
+    });
   }
 };
